@@ -8,7 +8,10 @@ dotenv.config();
 console.log('GEMINI KEY:', process.env.GEMINI_API_KEY ? 'LOADED' : 'MISSING');
 const app = express();
 
-app.use(cors());
+app.use(cors({
+  origin: 'https://your-frontend-url.vercel.app',
+  credentials: true
+}));
 app.use(express.json({ limit: '20mb' }));
 app.use(express.urlencoded({ limit: '20mb', extended: true }));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
