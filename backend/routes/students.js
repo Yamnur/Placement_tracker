@@ -148,6 +148,21 @@ router.post('/bulk-import', protect, adminOnly, bulkImportUpload.single('file'),
   }
 });
 
+// DELETE student account (admin only)
+router.delete('/:id', protect, adminOnly, async (req, res) => {
+  try {
+    const student = await User.findOne({ _id: req.params.id, role: 'student' });
+    if (!student) return res.status(404).json({ message: 'Student not found' });
+
+    await Application.deleteMany({ student: req.params.id });
+    await User.findByIdAndDelete(req.params.id);
+
+    res.json({ message: 'Student deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 // DELETE student data (GDPR - admin or own student)
 router.delete('/:id/gdpr', protect, async (req, res) => {
   try {

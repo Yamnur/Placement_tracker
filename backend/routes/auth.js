@@ -40,7 +40,7 @@ router.post('/register', async (req, res) => {
   try {
     const { name, email, password, role, rollNumber, branch } = req.body;
     const exists = await User.findOne({ email });
-    if (exists) return res.status(400).json({ message: 'Email already registered' });
+    if (exists) return res.status(409).json({ message: 'This email is already registered. Please log in or use another email.' });
 
     const verifyToken = crypto.randomBytes(32).toString('hex');
     const user = await User.create({
@@ -91,8 +91,13 @@ router.post('/login', async (req, res) => {
     const { email, password } = req.body;
     const user = await User.findOne({ email });
 
-    if (!user || !(await user.matchPassword(password)))
-      return res.status(401).json({ message: 'Invalid email or password' });
+    if (!user) {
+      return res.status(401).json({ message: 'No account found with this email. Please register first.' });
+    }
+
+    if (!(await user.matchPassword(password))) {
+      return res.status(401).json({ message: 'Incorrect password. Please try again.' });
+    }
 
     user.lastActive = new Date();
     await user.save();

@@ -6,10 +6,26 @@ export default function AdminStudents() {
   const [search, setSearch] = useState('');
   const [branchFilter, setBranchFilter] = useState('');
   const [loading, setLoading] = useState(true);
+  const [deletingId, setDeletingId] = useState(null);
 
   useEffect(() => {
     api.get('/students').then(r => setStudents(r.data)).finally(() => setLoading(false));
   }, []);
+
+  const handleDelete = async (studentId, studentName) => {
+    const confirmed = window.confirm(`Delete student ${studentName}? This action cannot be undone.`);
+    if (!confirmed) return;
+
+    setDeletingId(studentId);
+    try {
+      await api.delete(`/students/${studentId}`);
+      setStudents(prev => prev.filter(student => student._id !== studentId));
+    } catch (err) {
+      alert(err?.response?.data?.message || 'Failed to delete student');
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   const filtered = students.filter(s => {
     const q = search.toLowerCase();
@@ -41,7 +57,7 @@ export default function AdminStudents() {
         <div className="table-wrap">
           <table>
             <thead>
-              <tr><th>Name</th><th>Roll No</th><th>Branch</th><th>CGPA</th><th>Email</th><th>Phone</th><th>Profile</th><th>Resume</th></tr>
+              <tr><th>Name</th><th>Roll No</th><th>Branch</th><th>CGPA</th><th>Email</th><th>Phone</th><th>Profile</th><th>Resume</th><th>Action</th></tr>
             </thead>
             <tbody>
               {filtered.map(s => (
@@ -62,9 +78,19 @@ export default function AdminStudents() {
                       ? <a href={`http://localhost:5000${s.resumeUrl}`} target="_blank" rel="noreferrer" style={{ color: 'var(--accent2)', fontSize: '0.82rem' }}>View</a>
                       : <span style={{ color: 'var(--text3)', fontSize: '0.82rem' }}>—</span>}
                   </td>
+                  <td data-label="Action">
+                    <button
+                      className="btn"
+                      onClick={() => handleDelete(s._id, s.name)}
+                      disabled={deletingId === s._id}
+                      style={{ background: 'var(--danger)', color: '#fff', border: 'none', padding: '0.45rem 0.7rem', borderRadius: '6px', cursor: deletingId === s._id ? 'not-allowed' : 'pointer' }}
+                    >
+                      {deletingId === s._id ? 'Deleting...' : 'Delete'}
+                    </button>
+                  </td>
                 </tr>
               ))}
-              {filtered.length === 0 && <tr><td colSpan={8} style={{ textAlign: 'center', padding: '2rem', color: 'var(--text3)' }}>No students found</td></tr>}
+              {filtered.length === 0 && <tr><td colSpan={9} style={{ textAlign: 'center', padding: '2rem', color: 'var(--text3)' }}>No students found</td></tr>}
             </tbody>
           </table>
         </div>
