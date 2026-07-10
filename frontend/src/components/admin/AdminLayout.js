@@ -6,6 +6,7 @@ import toast from 'react-hot-toast';
 const navItems = [
   { to: '/admin', label: 'Dashboard', icon: '◈', end: true },
   { to: '/admin/jobs', label: 'Jobs', icon: '💼' },
+  { to: '/admin/companies', label: 'Companies', icon: '🏢' },
   { to: '/admin/drives', label: 'Drives', icon: '🚀' },
   { to: '/admin/applications', label: 'Applications', icon: '📋' },
   { to: '/admin/students', label: 'Students', icon: '👥' },

@@ -11,8 +11,22 @@ export default function AdminCompanies() {
   const [form, setForm] = useState(empty);
   const [editing, setEditing] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
-  const load = () => api.get('/companies').then(r => setCompanies(r.data)).finally(() => setLoading(false));
+  const load = async () => {
+    try {
+      setError('');
+      const res = await api.get('/companies');
+      setCompanies(res.data || []);
+    } catch (err) {
+      const errorMsg = err.response?.data?.message || err.message || 'Failed to load companies';
+      console.error('Load companies error:', err);
+      setError(errorMsg);
+      toast.error(errorMsg);
+    } finally {
+      setLoading(false);
+    }
+  };
   useEffect(() => { load(); }, []);
 
   const handle = e => setForm({ ...form, [e.target.name]: e.target.value });
@@ -23,11 +37,20 @@ export default function AdminCompanies() {
   const submit = async e => {
     e.preventDefault();
     try {
-      if (editing) await api.put(`/companies/${editing}`, form);
-      else await api.post('/companies', form);
-      toast.success(editing ? 'Company updated' : 'Company added');
-      setModal(false); load();
-    } catch (err) { toast.error(err.response?.data?.message || 'Error'); }
+      if (editing) {
+        await api.put(`/companies/${editing}`, form);
+        toast.success('Company updated');
+      } else {
+        await api.post('/companies', form);
+        toast.success('Company added');
+      }
+      setModal(false);
+      load();
+    } catch (err) {
+      const errorMsg = err.response?.data?.message || err.message || 'Error occurred';
+      console.error('Company submission error:', err);
+      toast.error(errorMsg);
+    }
   };
 
   const del = async id => {
@@ -45,6 +68,8 @@ export default function AdminCompanies() {
   });
 
   if (loading) return <div className="loading"><div className="spinner" />Loading...</div>;
+
+  if (error) return <div style={{ padding: '2rem', textAlign: 'center', color: 'red' }}><p>❌ Error: {error}</p></div>;
 
   return (
     <div>

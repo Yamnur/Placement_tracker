@@ -16,10 +16,25 @@ router.get('/', protect, async (req, res) => {
 // POST create company (admin only)
 router.post('/', protect, adminOnly, async (req, res) => {
   try {
-    const company = await Company.create({ ...req.body, createdBy: req.user._id });
+    const { name, description, website, industry, location, applicationLink } = req.body;
+
+    // Validation
+    if (!name || name.trim() === '') {
+      return res.status(400).json({ message: 'Company name is required' });
+    }
+
+    const company = await Company.create({
+      name: name.trim(),
+      description,
+      website,
+      industry,
+      location,
+      applicationLink,
+      createdBy: req.user._id,
+    });
     res.status(201).json(company);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(500).json({ message: err.message || 'Failed to create company' });
   }
 });
 
